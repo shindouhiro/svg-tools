@@ -8,7 +8,7 @@ import { useLanguage } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 // 注册自定义图标集合
-addCollection(iconsData);
+addCollection(iconsData as any);
 
 export default function DemoPage() {
   const { t, language } = useLanguage();
