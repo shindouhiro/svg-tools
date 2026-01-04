@@ -4,12 +4,14 @@ import { useState, useMemo } from 'react';
 import { addCollection, Icon } from '@iconify/react';
 import Link from 'next/link';
 import iconsData from '../utils/icons.json';
-
+import { useLanguage } from '../utils/i18n';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 // 注册自定义图标集合
 addCollection(iconsData);
 
 export default function DemoPage() {
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [iconSize, setIconSize] = useState(48);
@@ -64,12 +66,22 @@ export default function DemoPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 py-16">
+          <div className="flex justify-between items-start mb-8">
+            <Link href="/" className="btn-secondary flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              {t("back")}
+            </Link>
+            <LanguageSwitcher />
+          </div>
+
           {/* 标题区域 */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 mb-6">
               <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-sm font-medium text-indigo-300">
-                Iconify Collection Preview
+                {t("demoTitle")}
               </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
@@ -77,7 +89,7 @@ export default function DemoPage() {
               <span className="text-white/90"> Icons</span>
             </h1>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-              自定义 Iconify 图标集合演示页面，支持搜索、预览、复制代码和下载 SVG
+              {t("demoDesc")}
             </p>
           </div>
 
@@ -85,19 +97,19 @@ export default function DemoPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="stats-card group hover:scale-105 transition-transform">
               <div className="stats-value">{iconNames.length}</div>
-              <div className="text-zinc-400 text-sm">总图标数</div>
+              <div className="text-zinc-400 text-sm uppercase">{t("totalIcons")}</div>
             </div>
             <div className="stats-card group hover:scale-105 transition-transform">
               <div className="stats-value">{iconsData.width}</div>
-              <div className="text-zinc-400 text-sm">默认宽度</div>
+              <div className="text-zinc-400 text-sm uppercase">{t("defaultWidth")}</div>
             </div>
             <div className="stats-card group hover:scale-105 transition-transform">
               <div className="stats-value">{iconsData.height}</div>
-              <div className="text-zinc-400 text-sm">默认高度</div>
+              <div className="text-zinc-400 text-sm uppercase">{t("defaultHeight")}</div>
             </div>
             <div className="stats-card group hover:scale-105 transition-transform">
               <div className="stats-value text-2xl">{iconsData.prefix}</div>
-              <div className="text-zinc-400 text-sm">前缀名</div>
+              <div className="text-zinc-400 text-sm uppercase">{t("prefixName")}</div>
             </div>
           </div>
 
@@ -121,7 +133,7 @@ export default function DemoPage() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="搜索图标..."
+                  placeholder={t("searchIcons")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="input pl-12 w-full"
@@ -130,7 +142,7 @@ export default function DemoPage() {
 
               {/* 尺寸控制 */}
               <div className="flex items-center gap-3">
-                <label className="text-sm text-zinc-400 whitespace-nowrap">尺寸:</label>
+                <label className="text-sm text-zinc-400 whitespace-nowrap">{t("iconSize")}:</label>
                 <input
                   type="range"
                   min="24"
@@ -144,7 +156,7 @@ export default function DemoPage() {
 
               {/* 颜色选择 */}
               <div className="flex items-center gap-3">
-                <label className="text-sm text-zinc-400 whitespace-nowrap">颜色:</label>
+                <label className="text-sm text-zinc-400 whitespace-nowrap">{t("iconColor")}:</label>
                 <input
                   type="color"
                   value={iconColor}
@@ -158,10 +170,10 @@ export default function DemoPage() {
           {/* 图标网格 */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">
-                图标列表
+              <h2 className="text-xl font-semibold text-white uppercase">
+                {t("iconList")}
                 <span className="ml-2 text-sm font-normal text-zinc-500">
-                  ({filteredIcons.length} 个图标)
+                  ({filteredIcons.length})
                 </span>
               </h2>
             </div>
@@ -194,7 +206,7 @@ export default function DemoPage() {
                           copyIconCode(name);
                         }}
                         className="p-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition-colors"
-                        title="复制代码"
+                        title={t("copyCode")}
                       >
                         {copiedIcon === name ? (
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +224,7 @@ export default function DemoPage() {
                           downloadSvg(name);
                         }}
                         className="p-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 transition-colors"
-                        title="下载 SVG"
+                        title={t("downloadSvg")}
                       >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -237,7 +249,7 @@ export default function DemoPage() {
                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <p className="mt-4 text-zinc-500">未找到匹配的图标</p>
+                <p className="mt-4 text-zinc-500">{t("noIconsFound")}</p>
               </div>
             )}
           </div>
@@ -248,17 +260,17 @@ export default function DemoPage() {
               <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              使用说明
+              {t("usageInstructions")}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-sm font-medium text-zinc-300 mb-2">1. 安装依赖</h3>
+                <h3 className="text-sm font-medium text-zinc-300 mb-2">{t("installDeps")}</h3>
                 <div className="code-preview">
                   <pre className="text-emerald-400">npm install @iconify/react</pre>
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-zinc-300 mb-2">2. 导入并注册图标集</h3>
+                <h3 className="text-sm font-medium text-zinc-300 mb-2">{t("importAndRegister")}</h3>
                 <div className="code-preview">
                   <pre className="text-sky-400">{`import { addCollection, Icon } from '@iconify/react';
 import iconsData from './icons.json';
@@ -267,7 +279,7 @@ addCollection(iconsData);`}</pre>
                 </div>
               </div>
               <div className="md:col-span-2">
-                <h3 className="text-sm font-medium text-zinc-300 mb-2">3. 使用图标</h3>
+                <h3 className="text-sm font-medium text-zinc-300 mb-2">{t("useIcon")}</h3>
                 <div className="code-preview">
                   <pre className="text-amber-400">{`<Icon icon="${iconsData.prefix}:frame-1" width={48} height={48} />`}</pre>
                 </div>
@@ -283,14 +295,14 @@ addCollection(iconsData);`}</pre>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-white">Iconify IntelliSense</h3>
-                    <p className="text-xs text-zinc-400">配置 VS Code 插件获得自动补全和预览功能</p>
+                    <p className="text-xs text-zinc-400">{language === 'zh' ? '配置 VS Code 插件获得自动补全和预览功能' : 'Configure VS Code extension for autocomplete and preview'}</p>
                   </div>
                 </div>
                 <Link
                   href="/intellisense"
                   className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-2"
                 >
-                  查看配置指南
+                  {t("viewGuide")}
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -332,18 +344,18 @@ addCollection(iconsData);`}</pre>
             {/* 图标信息 */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="p-4 bg-zinc-800/50 rounded-lg">
-                <div className="text-xs text-zinc-500 mb-1">前缀</div>
+                <div className="text-xs text-zinc-500 mb-1">{t("prefixName")}</div>
                 <div className="text-sm font-mono text-zinc-200">{iconsData.prefix}</div>
               </div>
               <div className="p-4 bg-zinc-800/50 rounded-lg">
-                <div className="text-xs text-zinc-500 mb-1">名称</div>
+                <div className="text-xs text-zinc-500 mb-1">{language === 'zh' ? '名称' : 'Name'}</div>
                 <div className="text-sm font-mono text-zinc-200">{selectedIcon}</div>
               </div>
             </div>
 
             {/* 使用代码 */}
             <div className="mb-6">
-              <div className="text-sm font-medium text-zinc-300 mb-2">React 代码</div>
+              <div className="text-sm font-medium text-zinc-300 mb-2">React {t("code")}</div>
               <div className="code-preview flex items-center justify-between">
                 <pre className="text-emerald-400">{`<Icon icon="${iconsData.prefix}:${selectedIcon}" />`}</pre>
                 <button
@@ -366,7 +378,7 @@ addCollection(iconsData);`}</pre>
 
             {/* 测试图标 */}
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-xs text-zinc-400">测试:</span>
+              <span className="text-xs text-zinc-400">{t("test")}:</span>
               <Icon icon="icon:frame-2" width={32} height={32} />
               <span className="icon:frame-2" />
             </div>
@@ -380,7 +392,7 @@ addCollection(iconsData);`}</pre>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                复制代码
+                {t("copyCode")}
               </button>
               <button
                 onClick={() => downloadSvg(selectedIcon)}
@@ -389,7 +401,7 @@ addCollection(iconsData);`}</pre>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                下载 SVG
+                {t("downloadSvg")}
               </button>
             </div>
           </div>
@@ -399,7 +411,7 @@ addCollection(iconsData);`}</pre>
 
       {/* 测试图标展示 */}
       <div className="fixed bottom-4 right-4 p-4 bg-zinc-800/90 rounded-xl border border-zinc-700 shadow-lg">
-        <p className="text-xs text-zinc-400 mb-2">测试图标: icon:frame-3</p>
+        <p className="text-xs text-zinc-400 mb-2">{t("testIcon")}: icon:frame-3</p>
         <Icon icon="icon:frame-3" width={48} height={48} />
       </div>
 
@@ -409,7 +421,7 @@ addCollection(iconsData);`}</pre>
           <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span>代码已复制到剪贴板</span>
+          <span>{t("codeCopied")}</span>
         </div>
       )}
     </div>

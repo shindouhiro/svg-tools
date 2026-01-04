@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useLanguage } from "../utils/i18n";
 
 interface ConfigFormProps {
   prefix: string;
@@ -17,42 +18,44 @@ export default function ConfigForm({
   onChange,
   onCurrentColorChange,
 }: ConfigFormProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-8">
       <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2">
         <div className="w-full">
-          <label htmlFor="prefix" className="block text-xs font-semibold tracking-wider text-zinc-500 mb-2">
-            PREFIX
+          <label htmlFor="prefix" className="block text-xs font-semibold tracking-wider text-zinc-500 mb-2 uppercase">
+            {t("prefixLabel")}
           </label>
           <input
             type="text"
             name="prefix"
             id="prefix"
-            className="input font-mono"
+            className="input font-mono uppercase"
             placeholder="e.g. icon"
             value={prefix}
             onChange={(e) => onChange("prefix", e.target.value)}
           />
           <p className="mt-2 text-xs text-zinc-600">
-            e.g. "mdi" or "custom"
+            {t("prefixDesc")}
           </p>
         </div>
 
         <div className="w-full">
-          <label htmlFor="collectionName" className="block text-xs font-semibold tracking-wider text-zinc-500 mb-2">
-            COLLECTION NAME
+          <label htmlFor="collectionName" className="block text-xs font-semibold tracking-wider text-zinc-500 mb-2 uppercase">
+            {t("collectionLabel")}
           </label>
           <input
             type="text"
             name="collectionName"
             id="collectionName"
             className="input font-mono"
-            placeholder="Optionally set collection name"
+            placeholder="..."
             value={collectionName}
             onChange={(e) => onChange("collectionName", e.target.value)}
           />
           <p className="mt-2 text-xs text-zinc-600">
-            For JSON metadata
+            {t("collectionDesc")}
           </p>
         </div>
       </div>
@@ -66,9 +69,9 @@ export default function ConfigForm({
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-zinc-200">使用 currentColor</h3>
+            <h3 className="text-sm font-medium text-zinc-200">{t("useCurrentColorTitle")}</h3>
             <p className="text-xs text-zinc-500">
-              将 SVG 中的颜色替换为 currentColor，使图标可继承父元素颜色
+              {t("useCurrentColorDesc")}
             </p>
           </div>
         </div>

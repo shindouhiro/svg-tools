@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   keywords: ["SVG", "Iconify", "图标", "转换", "批量导入"],
 };
 
+import { LanguageProvider } from "./utils/i18n";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

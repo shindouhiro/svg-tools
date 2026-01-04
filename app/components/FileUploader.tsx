@@ -2,12 +2,14 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import { isValidSVGFile } from "../utils/iconify";
+import { useLanguage } from "../utils/i18n";
 
 interface FileUploaderProps {
   onFilesSelected: (files: File[]) => void;
 }
 
 export default function FileUploader({ onFilesSelected }: FileUploaderProps) {
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,12 +107,12 @@ export default function FileUploader({ onFilesSelected }: FileUploaderProps) {
           </svg>
         </div>
 
-        <div className="space-y-1">
-          <p className="font-mono text-sm font-medium text-zinc-200">
-            {isDragging ? "DROP IT LIKE IT'S HOT" : "UPLOAD SVG FILES"}
+        <div className="space-y-1 text-center font-mono">
+          <p className="text-sm font-medium text-zinc-200 uppercase">
+            {isDragging ? t("step1") : t("dropZoneTitle")}
           </p>
           <p className="text-xs text-zinc-500">
-            Drag & drop or click to browse
+            {t("dropZoneSub")}
           </p>
         </div>
       </div>

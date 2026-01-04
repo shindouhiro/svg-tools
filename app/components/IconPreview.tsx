@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ParsedSVG } from "../utils/iconify";
+import { useLanguage } from "../utils/i18n";
 
 interface IconPreviewProps {
   icons: ParsedSVG[];
@@ -9,6 +10,8 @@ interface IconPreviewProps {
 }
 
 export default function IconPreview({ icons, onRemove }: IconPreviewProps) {
+  const { language } = useLanguage();
+
   if (icons.length === 0) {
     return null;
   }
@@ -16,8 +19,8 @@ export default function IconPreview({ icons, onRemove }: IconPreviewProps) {
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-        <h2 className="text-sm font-semibold tracking-wider text-zinc-200">
-          PREVIEW <span className="text-zinc-500">({icons.length})</span>
+        <h2 className="text-sm font-semibold tracking-wider text-zinc-200 uppercase">
+          {language === 'zh' ? '图标预览' : 'PREVIEW'} <span className="text-zinc-500">({icons.length})</span>
         </h2>
       </div>
 
