@@ -99,6 +99,119 @@ export function parseSVG(svgContent: string, fileName: string): ParsedSVG | null
 }
 
 /**
+ * 将SVG body中的颜色替换为 currentColor
+ * 这样图标可以继承父元素的文字颜色
+ */
+export function replaceColorsWithCurrentColor(body: string): string {
+  // 匹配常见的颜色格式
+  // 1. 十六进制颜色: #RGB, #RRGGBB, #RRGGBBAA
+  // 2. rgb/rgba 颜色
+  // 3. 命名颜色（如 black, white, red 等常见颜色）
+  // 4. url(...) 渐变引用
+
+  const hexColorRegex = /#(?:[0-9a-fA-F]{3,4}){1,2}\b/;
+  const rgbColorRegex = /^rgba?\([^)]+\)$/i;
+  const urlGradientRegex = /^url\([^)]+\)$/i;
+  const namedColors = [
+    'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple',
+    'pink', 'gray', 'grey', 'brown', 'cyan', 'magenta', 'lime', 'navy',
+    'teal', 'silver', 'maroon', 'olive', 'aqua', 'fuchsia'
+  ];
+
+  /**
+   * 检查值是否应该被替换为 currentColor
+   */
+  const shouldReplace = (value: string): boolean => {
+    const trimmed = value.trim().toLowerCase();
+
+    // 已经是 currentColor
+    if (trimmed === 'currentcolor') return false;
+
+    // 是 none，不替换
+    if (trimmed === 'none') return false;
+
+    // 是 inherit/transparent 等保留值，不替换
+    if (['inherit', 'transparent', 'initial', 'unset'].includes(trimmed)) return false;
+
+    // 十六进制颜色
+    if (hexColorRegex.test(value.trim())) return true;
+
+    // rgb/rgba 颜色
+    if (rgbColorRegex.test(value.trim())) return true;
+
+    // 渐变引用 url(...)
+    if (urlGradientRegex.test(value.trim())) return true;
+
+    // 命名颜色
+    if (namedColors.includes(trimmed)) return true;
+
+    return false;
+  };
+
+  let result = body;
+
+  // 替换 fill 和 stroke 属性中的颜色（包括渐变引用）
+  result = result.replace(
+    /(fill|stroke)="([^"]+)"/gi,
+    (match: string, attr: string, value: string) => {
+      if (shouldReplace(value)) {
+        return `${attr}="currentColor"`;
+      }
+      return match;
+    }
+  );
+
+  // 替换内联 style 中的 fill 和 stroke 颜色
+  result = result.replace(
+    /style="([^"]*)"/gi,
+    (match: string, styleContent: string) => {
+      let newStyle = styleContent;
+
+      // 替换 fill: 和 stroke: 中的颜色值
+      newStyle = newStyle.replace(
+        /(fill|stroke)\s*:\s*([^;]+)/gi,
+        (styleMatch: string, prop: string, value: string) => {
+          if (shouldReplace(value)) {
+            return `${prop}: currentColor`;
+          }
+          return styleMatch;
+        }
+      );
+
+      return `style="${newStyle}"`;
+    }
+  );
+
+  // 替换 stop-color 属性（渐变中的颜色定义）
+  result = result.replace(
+    /stop-color="([^"]+)"/gi,
+    (match: string, value: string) => {
+      if (shouldReplace(value)) {
+        return `stop-color="currentColor"`;
+      }
+      return match;
+    }
+  );
+
+  // 移除不再需要的 defs 元素（如果包含渐变定义且已被替换）
+  // 移除 linearGradient 和 radialGradient 定义
+  result = result.replace(/<linearGradient[^>]*>[\s\S]*?<\/linearGradient>/gi, '');
+  result = result.replace(/<radialGradient[^>]*>[\s\S]*?<\/radialGradient>/gi, '');
+
+  // 移除空的 defs 元素
+  result = result.replace(/<defs[^>]*>\s*<\/defs>/gi, '');
+
+  // 清理多余的空白和 xmlns 在非根元素上
+  result = result.replace(/\s+xmlns="[^"]*"/gi, (match, offset) => {
+    // 只保留第一个 xmlns（如果存在）或者如果在开头附近
+    if (offset < 50) return match;
+    return '';
+  });
+
+  return result.trim();
+}
+
+/**
  * 读取文件内容为文本
  */
 export function readFileAsText(file: File): Promise<string> {

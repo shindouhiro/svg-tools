@@ -9,7 +9,6 @@ import iconsData from '../utils/icons.json';
 // 注册自定义图标集合
 addCollection(iconsData);
 
-
 export default function DemoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);

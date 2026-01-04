@@ -13,12 +13,14 @@ import {
   readFileAsText,
   generateIconifyJSON,
   downloadJSON,
+  replaceColorsWithCurrentColor,
 } from "./utils/iconify";
 
 export default function Home() {
   const [icons, setIcons] = useState<ParsedSVG[]>([]);
   const [prefix, setPrefix] = useState("icon");
   const [collectionName, setCollectionName] = useState("");
+  const [useCurrentColor, setUseCurrentColor] = useState(true);
 
   const handleFilesSelected = useCallback(async (files: File[]) => {
     const newIcons: ParsedSVG[] = [];
@@ -56,9 +58,18 @@ export default function Home() {
 
   const handleExport = useCallback(() => {
     if (icons.length === 0) return;
-    const json = generateIconifyJSON(icons, prefix || "icon", collectionName);
+
+    // 如果启用了 currentColor，处理图标颜色
+    const processedIcons = useCurrentColor
+      ? icons.map((icon) => ({
+        ...icon,
+        body: replaceColorsWithCurrentColor(icon.body),
+      }))
+      : icons;
+
+    const json = generateIconifyJSON(processedIcons, prefix || "icon", collectionName);
     downloadJSON(json, collectionName || "icons");
-  }, [icons, prefix, collectionName]);
+  }, [icons, prefix, collectionName, useCurrentColor]);
 
   return (
     <main className="min-h-screen w-full bg-[var(--background)] px-6 py-12 text-[var(--foreground)] md:px-12 lg:px-24">
@@ -128,7 +139,9 @@ export default function Home() {
               <ConfigForm
                 prefix={prefix}
                 collectionName={collectionName}
+                useCurrentColor={useCurrentColor}
                 onChange={handleConfigChange}
+                onCurrentColorChange={setUseCurrentColor}
               />
             </div>
           </section>
