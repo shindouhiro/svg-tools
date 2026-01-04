@@ -85,11 +85,34 @@ export default function Home() {
     downloadJSON(generatedJson, collectionName || "icons");
   }, [generatedJson, collectionName]);
 
-  const handleCopyJson = useCallback(() => {
+  const handleCopyJson = useCallback(async () => {
     if (!jsonString) return;
-    navigator.clipboard.writeText(jsonString);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(jsonString);
+        setCopied(true);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = jsonString;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+        } catch (err) {
+          console.error('Fallback copy failed', err);
+        }
+        document.body.removeChild(textArea);
+      }
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
   }, [jsonString]);
 
   return (
@@ -257,6 +280,16 @@ export default function Home() {
           <p>© {new Date().getFullYear()} {t("footer")}</p>
         </footer>
       </div>
+
+      {/* Toast 通知 */}
+      {copied && (
+        <div className="toast success flex items-center gap-2">
+          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{t("codeCopied")}</span>
+        </div>
+      )}
     </main>
   );
 }

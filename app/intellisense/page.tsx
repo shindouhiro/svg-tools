@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { useLanguage } from '../utils/i18n';
@@ -7,6 +8,35 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function IntelliSenseGuide() {
   const { t, language } = useLanguage();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+        } catch (err) {
+          console.error('Fallback copy failed', err);
+        }
+        document.body.removeChild(textArea);
+      }
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -87,7 +117,7 @@ export default function IntelliSenseGuide() {
                 <span>.vscode/settings.json</span>
                 <button
                   className="hover:text-white transition-colors uppercase font-bold"
-                  onClick={() => navigator.clipboard.writeText(`{
+                  onClick={() => handleCopy(`{
   "iconify.customCollectionJsonPaths": [
     "app/utils/icons.json"
   ]
@@ -179,6 +209,16 @@ export default function IntelliSenseGuide() {
           </div>
         </div>
       </div>
+
+      {/* Toast 通知 */}
+      {copied && (
+        <div className="toast success flex items-center gap-2">
+          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{t("codeCopied")}</span>
+        </div>
+      )}
     </div>
   );
 }
