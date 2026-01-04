@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import FileUploader from "./components/FileUploader";
@@ -28,23 +28,30 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
 
   const handleFilesSelected = useCallback(async (files: File[]) => {
-    const newIcons: ParsedSVG[] = [];
-
-    for (const file of files) {
-      try {
-        const content = await readFileAsText(file);
-        const parsed = parseSVG(content, file.name);
-        if (parsed) {
-          newIcons.push({ ...parsed, file });
+    const parsedIcons = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const content = await readFileAsText(file);
+          const parsed = parseSVG(content, file.name);
+          return parsed ? { ...parsed, file } : null;
+        } catch (error) {
+          console.error("Failed to read file:", file.name, error);
+          return null;
         }
-      } catch (error) {
-        console.error("Failed to read file:", file.name, error);
-      }
-    }
+      })
+    );
 
     setIcons((prev) => {
       const existingNames = new Set(prev.map((i) => i.name));
-      const uniqueNewIcons = newIcons.filter((i) => !existingNames.has(i.name));
+      const batchNames = new Set<string>();
+
+      const uniqueNewIcons = parsedIcons.flatMap((icon) => {
+        if (!icon) return [] as ParsedSVG[];
+        if (existingNames.has(icon.name) || batchNames.has(icon.name)) return [] as ParsedSVG[];
+        batchNames.add(icon.name);
+        return [icon];
+      });
+
       return [...prev, ...uniqueNewIcons];
     });
   }, []);
@@ -85,33 +92,36 @@ export default function Home() {
     downloadJSON(generatedJson, collectionName || "icons");
   }, [generatedJson, collectionName]);
 
+  const copyResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleCopyJson = useCallback(async () => {
     if (!jsonString) return;
+
+    const fallbackCopy = () => {
+      const textArea = document.createElement("textarea");
+      textArea.value = jsonString;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+    };
 
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(jsonString);
-        setCopied(true);
       } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = jsonString;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          setCopied(true);
-        } catch (err) {
-          console.error('Fallback copy failed', err);
-        }
-        document.body.removeChild(textArea);
+        fallbackCopy();
       }
-      setTimeout(() => setCopied(false), 2000);
+
+      setCopied(true);
+      if (copyResetTimeout.current) clearTimeout(copyResetTimeout.current);
+      copyResetTimeout.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      console.error("Failed to copy: ", err);
     }
   }, [jsonString]);
 
