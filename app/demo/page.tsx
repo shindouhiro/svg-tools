@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { addCollection, Icon } from '@iconify/react';
+import type { IconifyJSON } from '@iconify/types';
 import Link from 'next/link';
 import iconsData from '../utils/icons.json';
 import { useLanguage } from '../utils/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 // 注册自定义图标集合
-addCollection(iconsData as any);
+addCollection(iconsData as IconifyJSON);
 
 export default function DemoPage() {
   const { t, language } = useLanguage();
@@ -20,7 +21,7 @@ export default function DemoPage() {
 
   // 获取所有图标名称
   const iconNames = useMemo(() => {
-    return Object.keys(iconsData.icons);
+    return Object.keys(iconsData.icons).sort();
   }, []);
 
   // 过滤图标
@@ -31,13 +32,44 @@ export default function DemoPage() {
     );
   }, [iconNames, searchTerm]);
 
-  // 复制图标使用代码
-  const copyIconCode = (name: string) => {
+  const copyResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const copyIconCode = useCallback(async (name: string) => {
     const code = `<Icon icon="${iconsData.prefix}:${name}" />`;
-    navigator.clipboard.writeText(code);
-    setCopiedIcon(name);
-    setTimeout(() => setCopiedIcon(null), 2000);
-  };
+
+    const fallbackCopy = () => {
+      const textArea = document.createElement('textarea');
+      textArea.value = code;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      textArea.style.top = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    };
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        fallbackCopy();
+      }
+
+      setCopiedIcon(name);
+      if (copyResetTimeout.current) clearTimeout(copyResetTimeout.current);
+      copyResetTimeout.current = setTimeout(() => setCopiedIcon(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy icon code:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeout.current) clearTimeout(copyResetTimeout.current);
+    };
+  }, []);
 
   // 下载 SVG
   const downloadSvg = (name: string) => {
